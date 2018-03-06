@@ -37,6 +37,7 @@ namespace hashcode_2018_qualification
         protected int Steps;
 
         protected List<Ride> Rides;
+        private Dictionary<int, Ride> RidesHash;
 
         public void Load(string fileName)
         {
@@ -77,6 +78,9 @@ namespace hashcode_2018_qualification
 
                 this.Vehicles = vehicles;
                 this.Rides = rides;
+                this.RidesHash = new Dictionary<int, Ride>();
+                foreach (Ride ride in this.Rides)
+                    this.RidesHash.Add(ride.ID, ride);
 
                 this.Bonus = bonus;
                 this.Steps = steps;
