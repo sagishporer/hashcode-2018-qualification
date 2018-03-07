@@ -128,8 +128,7 @@ namespace hashcode_2018_qualification
             {
                 Vehicle car = Vehicles[i];
                 List<Ride> freeRides = new List<Ride>(Rides);
-                foreach (Ride ride in car.RidesAssigned)
-                    freeRides.Add(ride);
+                freeRides.AddRange(car.RidesAssigned);
 
                 Vehicle newCar = new Vehicle(car.ID);
                 AllocateRidesToCar_StartEarliest(newCar, freeRides, this.Bonus);
@@ -215,9 +214,7 @@ namespace hashcode_2018_qualification
                 for (int j = 0; j < Rides.Count; j++)
                 {
                     Ride newRide = Rides[j];
-                    List<Ride> rides = new List<Ride>();
-                    foreach (Ride ride in car.RidesAssigned)
-                        rides.Add(ride);
+                    List<Ride> rides = new List<Ride>(car.RidesAssigned);
 
                     Vehicle newCar = new Vehicle(car.ID);
                     for (int r = 0; r < rides.Count; r++)
