@@ -18,8 +18,8 @@ namespace hashcode_2018_qualification
             int totalScore = 0;
 
             Solver solver = new SolverByCarTime();
-            Solver solver2 = new SolverByCar();
-            Solver solver3 = new SolverByCarWait();
+            Solver solver2 = new SolverByCar(false);
+            Solver solver3 = new SolverByCar(true);
 
             totalScore += ProcessInputFile(solver, @"c:\temp\a.in");
             totalScore += ProcessInputFile(solver, @"c:\temp\b.in");

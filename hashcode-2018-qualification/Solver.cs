@@ -122,7 +122,7 @@ namespace hashcode_2018_qualification
 
         public abstract void Solve();
 
-        protected bool TryCarsReallocate()
+        protected bool TryCarsReallocate(bool useClosestRide)
         {
             for (int i = 0; i < Vehicles.Count; i++)
             {
@@ -131,7 +131,7 @@ namespace hashcode_2018_qualification
                 freeRides.AddRange(car.RidesAssigned);
 
                 Vehicle newCar = new Vehicle(car.ID);
-                AllocateRidesToCar_StartEarliest(newCar, freeRides, this.Bonus);
+                AllocateRidesToCar_StartEarliest(useClosestRide, newCar, freeRides, this.Bonus);
                 if (newCar.DriveDistance + newCar.BonusCollected * this.Bonus > car.DriveDistance + car.BonusCollected * this.Bonus)
                 {
                     Rides = freeRides;
@@ -144,18 +144,18 @@ namespace hashcode_2018_qualification
             return false;
         }
 
-        protected static void AllocateRidesToCar_StartEarliest(Vehicle newCar, List<Ride> freeRides, int bonusValue)
+        protected void AllocateRidesToCar_StartEarliest(bool useClosestRide, Vehicle newCar, List<Ride> freeRides, int bonusValue)
         {
             while (true)
             {
                 Ride bestRide;
-                int bestStartTime;
+                int bestCompleteTime;
 
-                AllocateRidesToCar_FindEarlyStartRide(newCar, freeRides, bonusValue, out bestRide, out bestStartTime);
+                AllocateRidesToCar_FindEarlyStartRide(useClosestRide, newCar, freeRides, bonusValue, out bestRide, out bestCompleteTime);
 
                 if (bestRide != null)
                 {
-                    newCar.AddRide(bestRide, bestStartTime + bestRide.Distance);
+                    newCar.AddRide(bestRide, bestCompleteTime);
                     // Remove ride from list
                     for (int i = 0; i < freeRides.Count; i++)
                         if (freeRides[i].ID == bestRide.ID)
@@ -169,10 +169,11 @@ namespace hashcode_2018_qualification
             }
         }
 
-        private static void AllocateRidesToCar_FindEarlyStartRide(Vehicle car, List<Ride> rides, int bonusValue, out Ride bestRide, out int bestStartTime)
+        private void AllocateRidesToCar_FindEarlyStartRide(bool useClosestRide, Vehicle car, List<Ride> rides, int bonusValue, out Ride bestRide, out int bestCompleteTime)
         {
             bestRide = null;
-            bestStartTime = 0;
+            bestCompleteTime = 0;
+            double bestStartTime = 0;
             int bestTimeToDrive = 0;
             double bestScoreDensity = 0;
 
@@ -182,15 +183,21 @@ namespace hashcode_2018_qualification
                 int carToStart = car.TimeDriveEnd + timeToDrive;
                 if (carToStart >= ride.TimeEnd)
                     continue;
-                int startTime = Math.Max(carToStart, ride.TimeStart);
-                if (startTime + ride.Distance >= ride.TimeEnd)
+                double startTime = Math.Max(carToStart, ride.TimeStart);
+                int completeTime = (int)startTime + ride.Distance;
+                if (completeTime >= ride.TimeEnd)
                     continue;
 
                 int bonus = (startTime == ride.TimeStart) ? bonusValue : 0;
                 double scoreDensity = (double)(ride.Distance + bonus) / (double)(startTime + ride.Distance - car.TimeDriveEnd);
 
+                if (useClosestRide == true)
+                    if ((double)completeTime <= 0.98 * this.Steps)
+                        startTime += (double)ride.ClosestRideDistance * 0.98;
+
                 if (bestRide == null)
                 {
+                    bestCompleteTime = completeTime;
                     bestRide = ride;
                     bestStartTime = startTime;
                     bestTimeToDrive = timeToDrive;
@@ -198,6 +205,7 @@ namespace hashcode_2018_qualification
                 }
                 else if (startTime < bestStartTime)
                 {
+                    bestCompleteTime = completeTime;
                     bestRide = ride;
                     bestStartTime = startTime;
                     bestTimeToDrive = timeToDrive;
@@ -256,77 +264,6 @@ namespace hashcode_2018_qualification
             }
 
             return false;
-        }
-    }
-
-    class SolverByCarWait : Solver
-    {
-        public override void Solve()
-        {
-            foreach (Ride ride in Rides)
-                ride.CalculateClosestRide(this.Rides);
-
-            foreach (Vehicle car in Vehicles)
-            {
-                while (true)
-                {
-                    Ride bestRide;
-                    int bestRideCompleteTime;
-                    FindBestRideForCarByWaitTime(car, out bestRide, out bestRideCompleteTime);
-
-                    if (bestRide == null)
-                        break;
-
-                    car.AddRide(bestRide, bestRideCompleteTime);
-                    Rides.Remove(bestRide);
-                }
-            }
-
-            while (true)
-            {
-                if (TryCarsReallocate())
-                    continue;
-
-                if (TryCarsPushRide())
-                    continue;
-
-                break;
-            }
-        }
-
-        private void FindBestRideForCarByWaitTime(Vehicle car, out Ride bestRide, out int bestRideCompleteTime)
-        {
-            bestRide = null;
-            bestRideCompleteTime = 0;
-            double bestWaitTime = 0;
-
-            foreach (Ride ride in Rides)
-            {
-                int carToStart = car.TimeDriveEnd + car.TimeToPosition(ride.StartR, ride.StartC);
-                if (carToStart >= ride.TimeEnd)
-                    continue;
-                int startTime = Math.Max(carToStart, ride.TimeStart);
-                int rideCompleteTime = startTime + ride.Distance;
-                if (rideCompleteTime >= ride.TimeEnd)
-                    continue;
-
-                double waitTime = startTime - car.TimeDriveEnd;
-                if ((double)rideCompleteTime <= 0.98 * this.Steps)
-                    waitTime += (double)ride.ClosestRideDistance * 0.98;
-
-                if (bestRide == null)
-                {
-                    bestRide = ride;
-                    bestRideCompleteTime = rideCompleteTime;
-                    bestWaitTime = waitTime;
-                }
-                else if (waitTime < bestWaitTime)
-                {
-                    bestRide = ride;
-                    bestRideCompleteTime = rideCompleteTime;
-                    bestWaitTime = waitTime;
-                }
-            }
         }
     }
 
@@ -617,17 +554,27 @@ namespace hashcode_2018_qualification
 
     class SolverByCar : Solver
     {
+        private bool UseClosestRide { get; set; }
+
+        public SolverByCar(bool useClosestRide)
+        {
+            this.UseClosestRide = useClosestRide;
+        }
+
         public override void Solve()
         {
+            foreach (Ride ride in Rides)
+                ride.CalculateClosestRide(this.Rides);
+
             for (int carPos = 0; carPos < Vehicles.Count; carPos++)
             {
                 Vehicle car = Vehicles[carPos];
-                AllocateRidesToCar_StartEarliest(car, Rides, this.Bonus);
+                AllocateRidesToCar_StartEarliest(this.UseClosestRide, car, Rides, this.Bonus);
             }
 
             while (true)
             {
-                if (TryCarsReallocate())
+                if (TryCarsReallocate(this.UseClosestRide))
                     continue;
 
                 if (TryCarsPushRide())
