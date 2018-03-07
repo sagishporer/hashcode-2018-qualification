@@ -17,6 +17,8 @@ namespace hashcode_2018_qualification
         public int Distance { get; private set; }
         public int TimeLatestStart { get; private set; }
 
+        public int ClosestRideDistance { get; private set; }
+
         public Ride(int id, int startR, int startC, int endR, int endC, int timeStart, int timeEnd)
         {
             this.ID = id;
@@ -34,6 +36,26 @@ namespace hashcode_2018_qualification
 
             if (this.TimeLatestStart < this.TimeStart)
                 throw new Exception("Error in input");
+        }
+
+        public void CalculateClosestRide(List<Ride> rides)
+        {
+            int closest = int.MaxValue;
+
+            for (int i = 0; i < rides.Count; i++)
+            {
+                Ride other = rides[i];
+                if (this.ID == other.ID)
+                    continue;
+
+                int distance = Utils.CalculateDistance(this.EndR, this.EndC, other.StartR, other.StartC);
+                //if (this.TimeStart + this.Distance + distance > other.TimeLatestStart)
+                //    continue;
+
+                closest = Math.Min(closest, distance);
+            }
+
+            ClosestRideDistance = closest;
         }
 
         public class CompareByStartTime : Comparer<Ride>
