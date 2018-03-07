@@ -211,7 +211,6 @@ namespace hashcode_2018_qualification
             }
         }
         
-        /*
         protected bool TryCarsPushRide()
         {
             for (int i = 0; i < Vehicles.Count; i++)
@@ -229,10 +228,11 @@ namespace hashcode_2018_qualification
                     {
                         Ride ride = rides[r];
                         int timeToRide = newCar.TimeDriveEnd + newCar.TimeToPosition(ride.StartR, ride.StartC);
+                        timeToRide = Math.Max(timeToRide, ride.TimeStart);
                         int timeToRideEnd = timeToRide + ride.Distance;
                         if (newRide != null)
                         {
-                            int ridesDistance = Vehicle.CalculateDistance(ride.EndR, ride.EndC, newRide.StartR, newRide.StartC);
+                            int ridesDistance = Utils.CalculateDistance(ride.EndR, ride.EndC, newRide.StartR, newRide.StartC);
                             if (timeToRideEnd + ridesDistance > newRide.TimeLatestStart)
                             {
                                 // Try to add new ride
@@ -240,12 +240,13 @@ namespace hashcode_2018_qualification
                                 newRide = null;
                                 r--;
                                 timeToRide = newCar.TimeDriveEnd + newCar.TimeToPosition(ride.StartR, ride.StartC);
+                                timeToRide = Math.Max(timeToRide, ride.TimeStart);
                                 timeToRideEnd = timeToRide + ride.Distance;
                             }
                         }
 
                         if (timeToRideEnd < ride.TimeEnd)
-                            newCar.AddRide(ride, ride.EndR, ride.EndC, timeToRideEnd);
+                            newCar.AddRide(ride, timeToRideEnd);
                     }
 
                     if (newCar.DriveDistance + newCar.BonusCollected * this.Bonus > car.DriveDistance + car.BonusCollected * this.Bonus)
@@ -263,7 +264,6 @@ namespace hashcode_2018_qualification
 
             return false;
         }
-        */
     }
 
     class SolverByCarTime : Solver
