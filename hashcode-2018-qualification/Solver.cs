@@ -145,7 +145,7 @@ namespace hashcode_2018_qualification
         }
 
         protected static void AllocateRidesToCar_StartEarliest(Vehicle newCar, List<Ride> freeRides, int bonusValue)
-        { 
+        {
             while (true)
             {
                 Ride bestRide;
@@ -205,7 +205,7 @@ namespace hashcode_2018_qualification
                 }
             }
         }
-        
+
         protected bool TryCarsPushRide()
         {
             for (int i = 0; i < Vehicles.Count; i++)
@@ -256,6 +256,77 @@ namespace hashcode_2018_qualification
             }
 
             return false;
+        }
+    }
+
+    class SolverByCarWait : Solver
+    {
+        public override void Solve()
+        {
+            foreach (Ride ride in Rides)
+                ride.CalculateClosestRide(this.Rides);
+
+            foreach (Vehicle car in Vehicles)
+            {
+                while (true)
+                {
+                    Ride bestRide;
+                    int bestRideCompleteTime;
+                    FindBestRideForCarByWaitTime(car, out bestRide, out bestRideCompleteTime);
+
+                    if (bestRide == null)
+                        break;
+
+                    car.AddRide(bestRide, bestRideCompleteTime);
+                    Rides.Remove(bestRide);
+                }
+            }
+
+            while (true)
+            {
+                if (TryCarsReallocate())
+                    continue;
+
+                if (TryCarsPushRide())
+                    continue;
+
+                break;
+            }
+        }
+
+        private void FindBestRideForCarByWaitTime(Vehicle car, out Ride bestRide, out int bestRideCompleteTime)
+        {
+            bestRide = null;
+            bestRideCompleteTime = 0;
+            double bestWaitTime = 0;
+
+            foreach (Ride ride in Rides)
+            {
+                int carToStart = car.TimeDriveEnd + car.TimeToPosition(ride.StartR, ride.StartC);
+                if (carToStart >= ride.TimeEnd)
+                    continue;
+                int startTime = Math.Max(carToStart, ride.TimeStart);
+                int rideCompleteTime = startTime + ride.Distance;
+                if (rideCompleteTime >= ride.TimeEnd)
+                    continue;
+
+                double waitTime = startTime - car.TimeDriveEnd;
+                if ((double)rideCompleteTime <= 0.98 * this.Steps)
+                    waitTime += (double)ride.ClosestRideDistance * 0.98;
+
+                if (bestRide == null)
+                {
+                    bestRide = ride;
+                    bestRideCompleteTime = rideCompleteTime;
+                    bestWaitTime = waitTime;
+                }
+                else if (waitTime < bestWaitTime)
+                {
+                    bestRide = ride;
+                    bestRideCompleteTime = rideCompleteTime;
+                    bestWaitTime = waitTime;
+                }
+            }
         }
     }
 
