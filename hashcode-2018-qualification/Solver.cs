@@ -559,8 +559,8 @@ namespace hashcode_2018_qualification
                 if (TryCarsReallocate())
                     continue;
 
-                //if (TryCarsPushRide())
-                //    continue;
+                if (TryCarsPushRide())
+                    continue;
 
                 break;
             }
