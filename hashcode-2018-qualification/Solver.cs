@@ -125,6 +125,145 @@ namespace hashcode_2018_qualification
         }
 
         public abstract void Solve();
+
+        protected bool TryCarsReallocate()
+        {
+            for (int i = 0; i < Vehicles.Count; i++)
+            {
+                Vehicle car = Vehicles[i];
+                List<Ride> freeRides = new List<Ride>(Rides);
+                foreach (int rideId in car.RidesAssigned)
+                    freeRides.Add(RidesHash[rideId]);
+
+                Vehicle newCar = new Vehicle(car.ID);
+                AllocateRidesToCar_StartEarliest(newCar, freeRides, this.Bonus);
+                if (newCar.DriveDistance + newCar.BonusCollected * this.Bonus > car.DriveDistance + car.BonusCollected * this.Bonus)
+                {
+                    Rides = freeRides;
+                    Vehicles[i] = newCar;
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        protected static void AllocateRidesToCar_StartEarliest(Vehicle newCar, List<Ride> freeRides, int bonusValue)
+        { 
+            while (true)
+            {
+                Ride bestRide;
+                int bestStartTime;
+
+                AllocateRidesToCar_FindEarlyStartRide(newCar, freeRides, bonusValue, out bestRide, out bestStartTime);
+
+                if (bestRide != null)
+                {
+                    newCar.AddRide(bestRide, bestRide.EndR, bestRide.EndC, bestStartTime + bestRide.Distance);
+                    // Remove ride from list
+                    for (int i = 0; i < freeRides.Count; i++)
+                        if (freeRides[i].ID == bestRide.ID)
+                        {
+                            freeRides.RemoveAt(i);
+                            break;
+                        }
+                }
+                else
+                    break;
+            }
+        }
+
+        private static void AllocateRidesToCar_FindEarlyStartRide(Vehicle car, List<Ride> rides, int bonusValue, out Ride bestRide, out int bestStartTime)
+        {
+            bestRide = null;
+            bestStartTime = 0;
+            int bestTimeToDrive = 0;
+            double bestScoreDensity = 0;
+
+            foreach (Ride ride in rides)
+            {
+                int timeToDrive = car.TimeToPosition(ride.StartR, ride.StartC);
+                int carToStart = car.TimeDriveEnd + timeToDrive;
+                if (carToStart >= ride.TimeEnd)
+                    continue;
+                int startTime = Math.Max(carToStart, ride.TimeStart);
+                if (startTime + ride.Distance >= ride.TimeEnd)
+                    continue;
+
+                int bonus = (startTime == ride.TimeStart) ? bonusValue : 0;
+                double scoreDensity = (double)(ride.Distance + bonus) / (double)(startTime + ride.Distance - car.TimeDriveEnd);
+
+                if (bestRide == null)
+                {
+                    bestRide = ride;
+                    bestStartTime = startTime;
+                    bestTimeToDrive = timeToDrive;
+                    bestScoreDensity = scoreDensity;
+                }
+                else if (startTime < bestStartTime)
+                {
+                    bestRide = ride;
+                    bestStartTime = startTime;
+                    bestTimeToDrive = timeToDrive;
+                    bestScoreDensity = scoreDensity;
+                }
+            }
+        }
+        
+        /*
+        protected bool TryCarsPushRide()
+        {
+            for (int i = 0; i < Vehicles.Count; i++)
+            {
+                Vehicle car = Vehicles[i];
+                for (int j = 0; j < Rides.Count; j++)
+                {
+                    Ride newRide = Rides[j];
+                    List<Ride> rides = new List<Ride>();
+                    foreach (int rideId in car.RidesAssigned)
+                        rides.Add(RidesHash[rideId]);
+
+                    Vehicle newCar = new Vehicle(car.ID);
+                    for (int r = 0; r < rides.Count; r++)
+                    {
+                        Ride ride = rides[r];
+                        int timeToRide = newCar.TimeDriveEnd + newCar.TimeToPosition(ride.StartR, ride.StartC);
+                        int timeToRideEnd = timeToRide + ride.Distance;
+                        if (newRide != null)
+                        {
+                            int ridesDistance = Vehicle.CalculateDistance(ride.EndR, ride.EndC, newRide.StartR, newRide.StartC);
+                            if (timeToRideEnd + ridesDistance > newRide.TimeLatestStart)
+                            {
+                                // Try to add new ride
+                                ride = newRide;
+                                newRide = null;
+                                r--;
+                                timeToRide = newCar.TimeDriveEnd + newCar.TimeToPosition(ride.StartR, ride.StartC);
+                                timeToRideEnd = timeToRide + ride.Distance;
+                            }
+                        }
+
+                        if (timeToRideEnd < ride.TimeEnd)
+                            newCar.AddRide(ride, ride.EndR, ride.EndC, timeToRideEnd);
+                    }
+
+                    if (newCar.DriveDistance + newCar.BonusCollected * this.Bonus > car.DriveDistance + car.BonusCollected * this.Bonus)
+                    {
+                        Rides.AddRange(rides);
+                        foreach (int rideId in newCar.RidesAssigned)
+                            if (Rides.Remove(RidesHash[rideId]) == false)
+                                throw new Exception("Bug");
+
+                        Vehicles[i] = newCar;
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+        */
     }
 
     class SolverByCarTime : Solver
@@ -419,91 +558,18 @@ namespace hashcode_2018_qualification
             for (int carPos = 0; carPos < Vehicles.Count; carPos++)
             {
                 Vehicle car = Vehicles[carPos];
-                while (true)
-                {
-                    Ride bestRide;
-                    int bestStartTime;
-
-                    FindBestRideForCar(car, out bestRide, out bestStartTime);
-
-                    if (bestRide != null)
-                    {
-                        car.AddRide(bestRide, bestRide.EndR, bestRide.EndC, bestStartTime + bestRide.Distance);
-                        // Remove ride from list
-                        for (int i = 0; i < Rides.Count; i++)
-                            if (Rides[i].ID == bestRide.ID)
-                            {
-                                Rides.RemoveAt(i);
-                                break;
-                            }
-                    }
-                    else
-                        break;
-                }
+                AllocateRidesToCar_StartEarliest(car, Rides, this.Bonus);
             }
-        }
 
-        private void FindBestRideForCar(Vehicle car, out Ride bestRide, out int bestStartTime)
-        {
-            bestRide = null;
-            bestStartTime = 0;
-            int bestTimeToDrive = 0;
-            double bestScoreDensity = 0;
-
-            foreach (Ride ride in Rides)
+            while (true)
             {
-                int timeToDrive = car.TimeToPosition(ride.StartR, ride.StartC);
-                int carToStart = car.TimeDriveEnd + timeToDrive;
-                if (carToStart >= ride.TimeEnd)
-                    continue;
-                int startTime = Math.Max(carToStart, ride.TimeStart);
-                if (startTime + ride.Distance >= ride.TimeEnd)
+                if (TryCarsReallocate())
                     continue;
 
-                int bonus = (startTime == ride.TimeStart) ? Bonus : 0;
-                double scoreDensity = (double)(ride.Distance + bonus) / (double)(startTime + ride.Distance - car.TimeDriveEnd);
+                //if (TryCarsPushRide())
+                //    continue;
 
-                if (bestRide == null)
-                {
-                    bestRide = ride;
-                    bestStartTime = startTime;
-                    bestTimeToDrive = timeToDrive;
-                    bestScoreDensity = scoreDensity;
-                }
-                /*
-                // Doesn't improve on best score (improve on problem 'e')
-                else if (scoreDensity > bestScoreDensity)
-                {
-                    bestRide = ride;
-                    bestStartTime = startTime;
-                    bestTimeToDrive = timeToDrive;
-                    bestScoreDensity = scoreDensity;
-                }
-                */
-                else if (startTime < bestStartTime)
-                {
-                    bestRide = ride;
-                    bestStartTime = startTime;
-                    bestTimeToDrive = timeToDrive;
-                    bestScoreDensity = scoreDensity;
-                }
-                /*
-                // Doesn't improve anything
-                else if ((startTime == bestStartTime) && (timeToDrive < bestTimeToDrive))
-                {
-                    bestRide = ride;
-                    bestStartTime = startTime;
-                    bestTimeToDrive = timeToDrive;
-                }
-                */
-                /*
-                // Doesn't improve anything
-                else if ((startTime == bestStartTime) && (bestRide.Distance < ride.Distance))
-                {
-                    bestRide = ride;
-                    bestStartTime = startTime;
-                }
-                */
+                break;
             }
         }
     }
