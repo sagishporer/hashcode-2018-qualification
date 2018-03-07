@@ -30,15 +30,15 @@ namespace hashcode_2018_qualification
             return Utils.CalculateDistance(PosR, PosC, r, c);
         }
 
-        internal void AddRide(Ride ride, int endR, int endC, int timeDriveEnd)
+        internal void AddRide(Ride ride, int timeDriveEnd)
         {
             RidesAssigned.Add(ride.ID);
             this.DriveDistance += ride.Distance;
             if (timeDriveEnd - ride.Distance == ride.TimeStart)
                 this.BonusCollected++;
 
-            this.PosR = endR;
-            this.PosC = endC;
+            this.PosR = ride.EndR;
+            this.PosC = ride.EndC;
             this.TimeDriveEnd = timeDriveEnd;
         }
 

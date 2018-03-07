@@ -160,7 +160,7 @@ namespace hashcode_2018_qualification
 
                 if (bestRide != null)
                 {
-                    newCar.AddRide(bestRide, bestRide.EndR, bestRide.EndC, bestStartTime + bestRide.Distance);
+                    newCar.AddRide(bestRide, bestStartTime + bestRide.Distance);
                     // Remove ride from list
                     for (int i = 0; i < freeRides.Count; i++)
                         if (freeRides[i].ID == bestRide.ID)
@@ -325,7 +325,7 @@ namespace hashcode_2018_qualification
                         continue;
 
                     // Add ride to car
-                    car.AddRide(bestRide, bestRide.EndR, bestRide.EndC, rideStartTime + bestRide.Distance);
+                    car.AddRide(bestRide, rideStartTime + bestRide.Distance);
                     Rides.Remove(bestRide);
                 }
             }
@@ -444,7 +444,7 @@ namespace hashcode_2018_qualification
                         continue;
 
                     // Add ride to car
-                    bestCar.AddRide(ride, ride.EndR, ride.EndC, rideStartTime + ride.Distance);
+                    bestCar.AddRide(ride, rideStartTime + ride.Distance);
                     Rides.RemoveAt(ridePos);
 
                     // Optimization - if not vehicle is free at this time - not need to continue checking
@@ -502,7 +502,7 @@ namespace hashcode_2018_qualification
 
                     if (bestRide != null)
                     {
-                        car.AddRide(bestRide, bestRide.EndR, bestRide.EndC, bestStartTime + bestRide.Distance);
+                        car.AddRide(bestRide, bestStartTime + bestRide.Distance);
                         // Remove ride from list
                         for (int i = 0; i < Rides.Count; i++)
                             if (Rides[i].ID == bestRide.ID)
@@ -629,7 +629,6 @@ namespace hashcode_2018_qualification
 
                 // Add ride to car
                 bestGlobalCar.AddRide(bestGlobalRide,
-                    bestGlobalRide.EndR, bestGlobalRide.EndC,
                     bestGlobalCompleteTime);
 
                 // Remove ride from list
@@ -709,7 +708,7 @@ namespace hashcode_2018_qualification
                     continue;
 
                 // Add ride to car
-                bestCar.AddRide(ride, ride.EndR, ride.EndC, rideStartTime + ride.Distance);
+                bestCar.AddRide(ride, rideStartTime + ride.Distance);
             }
         }
 
