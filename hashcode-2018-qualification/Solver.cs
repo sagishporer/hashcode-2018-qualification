@@ -577,6 +577,9 @@ namespace hashcode_2018_qualification
                 if (TryCarsReallocate(this.UseClosestRide))
                     continue;
 
+                if (TryCarsReallocate(!this.UseClosestRide))
+                    continue;
+
                 if (TryCarsPushRide())
                     continue;
 
