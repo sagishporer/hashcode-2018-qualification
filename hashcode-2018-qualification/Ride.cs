@@ -29,7 +29,7 @@ namespace hashcode_2018_qualification
             this.TimeStart = timeStart;
             this.TimeEnd = timeEnd;
 
-            this.Distance = Math.Abs(StartR - EndR) + Math.Abs(StartC - EndC);
+            this.Distance = Utils.CalculateDistance(StartR, StartC, EndR, StartC);
             this.TimeLatestStart = this.TimeEnd - this.Distance;
 
             if (this.TimeLatestStart < this.TimeStart)

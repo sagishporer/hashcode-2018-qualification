@@ -27,12 +27,7 @@ namespace hashcode_2018_qualification
 
         public int TimeToPosition(int r, int c)
         {
-            return CalculateDistance(PosR, PosC, r, c);
-        }
-
-        public static int CalculateDistance(int r1, int c1, int r2, int c2)
-        {
-            return Math.Abs(r1 - r2) + Math.Abs(c1 - c2);
+            return Utils.CalculateDistance(PosR, PosC, r, c);
         }
 
         internal void AddRide(Ride ride, int endR, int endC, int timeDriveEnd)
