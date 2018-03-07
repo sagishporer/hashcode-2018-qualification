@@ -37,7 +37,6 @@ namespace hashcode_2018_qualification
         protected int Steps;
 
         protected List<Ride> Rides;
-        private Dictionary<int, Ride> RidesHash;
 
         public void Load(string fileName)
         {
@@ -78,9 +77,6 @@ namespace hashcode_2018_qualification
 
                 this.Vehicles = vehicles;
                 this.Rides = rides;
-                this.RidesHash = new Dictionary<int, Ride>();
-                foreach (Ride ride in this.Rides)
-                    this.RidesHash.Add(ride.ID, ride);
 
                 this.Bonus = bonus;
                 this.Steps = steps;
@@ -103,12 +99,12 @@ namespace hashcode_2018_qualification
             {
                 foreach (Vehicle vehicle in this.Vehicles)
                 {
-                    List<int> ridesAssigned = vehicle.RidesAssigned;
+                    List<Ride> ridesAssigned = vehicle.RidesAssigned;
                     sw.Write(ridesAssigned.Count);
                     for (int i = 0; i < ridesAssigned.Count; i++)
                     {
                         sw.Write(" ");
-                        sw.Write(ridesAssigned[i]);
+                        sw.Write(ridesAssigned[i].ID);
                     }
                     sw.WriteLine();
                 }
@@ -132,8 +128,8 @@ namespace hashcode_2018_qualification
             {
                 Vehicle car = Vehicles[i];
                 List<Ride> freeRides = new List<Ride>(Rides);
-                foreach (int rideId in car.RidesAssigned)
-                    freeRides.Add(RidesHash[rideId]);
+                foreach (Ride ride in car.RidesAssigned)
+                    freeRides.Add(ride);
 
                 Vehicle newCar = new Vehicle(car.ID);
                 AllocateRidesToCar_StartEarliest(newCar, freeRides, this.Bonus);
@@ -220,8 +216,8 @@ namespace hashcode_2018_qualification
                 {
                     Ride newRide = Rides[j];
                     List<Ride> rides = new List<Ride>();
-                    foreach (int rideId in car.RidesAssigned)
-                        rides.Add(RidesHash[rideId]);
+                    foreach (Ride ride in car.RidesAssigned)
+                        rides.Add(ride);
 
                     Vehicle newCar = new Vehicle(car.ID);
                     for (int r = 0; r < rides.Count; r++)
@@ -252,8 +248,8 @@ namespace hashcode_2018_qualification
                     if (newCar.DriveDistance + newCar.BonusCollected * this.Bonus > car.DriveDistance + car.BonusCollected * this.Bonus)
                     {
                         Rides.AddRange(rides);
-                        foreach (int rideId in newCar.RidesAssigned)
-                            if (Rides.Remove(RidesHash[rideId]) == false)
+                        foreach (Ride ride in newCar.RidesAssigned)
+                            if (Rides.Remove(ride) == false)
                                 throw new Exception("Bug");
 
                         Vehicles[i] = newCar;

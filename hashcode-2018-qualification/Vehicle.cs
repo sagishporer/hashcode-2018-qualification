@@ -10,7 +10,7 @@ namespace hashcode_2018_qualification
         public int PosC;
 
         public int TimeDriveEnd;
-        public List<int> RidesAssigned;
+        public List<Ride> RidesAssigned;
         public int DriveDistance;
         public int BonusCollected;
 
@@ -19,7 +19,7 @@ namespace hashcode_2018_qualification
             this.ID = id;
             PosC = 0;
             PosR = 0;
-            RidesAssigned = new List<int>();
+            RidesAssigned = new List<Ride>();
             TimeDriveEnd = 0;
             DriveDistance = 0;
             BonusCollected = 0;
@@ -32,7 +32,7 @@ namespace hashcode_2018_qualification
 
         internal void AddRide(Ride ride, int timeDriveEnd)
         {
-            RidesAssigned.Add(ride.ID);
+            RidesAssigned.Add(ride);
             this.DriveDistance += ride.Distance;
             if (timeDriveEnd - ride.Distance == ride.TimeStart)
                 this.BonusCollected++;
