@@ -4,15 +4,6 @@ namespace hashcode_2018_qualification
 {
     class Program
     {
-        private static readonly string[] INPUT_FILES =
-        {
-            //@"c:\temp\a.in",
-            //@"c:\temp\b.in",
-            @"c:\temp\c.in",
-            @"c:\temp\d.in"
-            //@"c:\temp\e.in"
-        };
-
         static void Main(string[] args)
         {
             int totalScore = 0;
