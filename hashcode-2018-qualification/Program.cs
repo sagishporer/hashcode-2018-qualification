@@ -22,7 +22,7 @@ namespace hashcode_2018_qualification
 
         private static int ProcessInputFile(Solver solver, string fileName)
         {
-            System.Console.Write("Processing: {0}", fileName);
+            System.Console.Write("{0} Processing: {1}", DateTime.Now, fileName);
             solver.Load(fileName);
 
             System.Console.Write(", Max Possible: {0}", solver.CalcMaxPossibleScore());
