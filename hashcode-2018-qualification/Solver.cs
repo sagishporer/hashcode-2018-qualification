@@ -122,6 +122,50 @@ namespace hashcode_2018_qualification
 
         public abstract void Solve();
 
+        protected bool TryCarsX2Reallocate(bool useClosestRide)
+        {
+            bool improved = false;
+            for (int i = 0; i < Vehicles.Count; i++)
+            { 
+                for (int j = i + 1; j < Vehicles.Count; j++)
+                {
+                    List<Vehicle> cars = new List<Vehicle>();
+                    cars.Add(Vehicles[i]);
+                    cars.Add(Vehicles[j]);
+
+                    List<Ride> freeRides = new List<Ride>(Rides);
+                    foreach (Vehicle car in cars)
+                        freeRides.AddRange(car.RidesAssigned);
+
+                    List<Vehicle> newCars = new List<Vehicle>();
+                    foreach (Vehicle car in cars)
+                        newCars.Add(new Vehicle(car.ID));
+
+                    foreach (Vehicle newCar in newCars)
+                        AllocateRidesToCar_StartEarliest(useClosestRide, newCar, freeRides, this.Bonus);
+
+                    int oldScore = 0;
+                    foreach (Vehicle car in cars)
+                        oldScore += car.GetScore(this.Bonus);
+
+                    int newScore = 0;
+                    foreach (Vehicle newCar in newCars)
+                        newScore += newCar.GetScore(this.Bonus);
+
+                    if (newScore > oldScore)
+                    {
+                        Rides = freeRides;
+                        Vehicles[i] = newCars[0];
+                        Vehicles[j] = newCars[1];
+
+                        improved = true;
+                    }
+                }
+            }
+
+            return improved;
+        }
+
         protected bool TryCarsReallocate(bool useClosestRide)
         {
             for (int i = 0; i < Vehicles.Count; i++)
@@ -174,8 +218,6 @@ namespace hashcode_2018_qualification
             bestRide = null;
             bestCompleteTime = 0;
             double bestStartTime = 0;
-            int bestTimeToDrive = 0;
-            double bestScoreDensity = 0;
 
             foreach (Ride ride in rides)
             {
@@ -188,9 +230,6 @@ namespace hashcode_2018_qualification
                 if (completeTime >= ride.TimeEnd)
                     continue;
 
-                int bonus = (startTime == ride.TimeStart) ? bonusValue : 0;
-                double scoreDensity = (double)(ride.Distance + bonus) / (double)(startTime + ride.Distance - car.TimeDriveEnd);
-
                 if (useClosestRide == true)
                     if ((double)completeTime <= 0.98 * this.Steps)
                         startTime += (double)ride.ClosestRideDistance * 0.98;
@@ -200,16 +239,12 @@ namespace hashcode_2018_qualification
                     bestCompleteTime = completeTime;
                     bestRide = ride;
                     bestStartTime = startTime;
-                    bestTimeToDrive = timeToDrive;
-                    bestScoreDensity = scoreDensity;
                 }
                 else if (startTime < bestStartTime)
                 {
                     bestCompleteTime = completeTime;
                     bestRide = ride;
                     bestStartTime = startTime;
-                    bestTimeToDrive = timeToDrive;
-                    bestScoreDensity = scoreDensity;
                 }
             }
         }
@@ -294,8 +329,9 @@ namespace hashcode_2018_qualification
 
                 if (rideAdded == false)
                     break;
-	        }
+            }	        
             
+            // Optimization phase
             while (true)
             {
                 if (TryCarsReallocate(true))
@@ -305,6 +341,12 @@ namespace hashcode_2018_qualification
                     continue;
 
                 if (TryCarsPushRide())
+                    continue;
+
+                if (TryCarsX2Reallocate(true))
+                    continue;
+
+                if (TryCarsX2Reallocate(false))
                     continue;
 
                 break;
@@ -656,6 +698,12 @@ namespace hashcode_2018_qualification
                     continue;
 
                 if (TryCarsPushRide())
+                    continue;
+
+                if (TryCarsX2Reallocate(true))
+                    continue;
+
+                if (TryCarsX2Reallocate(false))
                     continue;
 
                 break;
