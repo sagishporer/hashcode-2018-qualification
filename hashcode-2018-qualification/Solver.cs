@@ -246,7 +246,7 @@ namespace hashcode_2018_qualification
                             }
                         }
 
-                        if (timeToRideEnd < ride.TimeEnd)
+                        if (timeToRideEnd <= ride.TimeEnd)
                             newCar.AddRide(ride, timeToRideEnd);
                     }
 
