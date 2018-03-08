@@ -465,23 +465,6 @@ namespace hashcode_2018_qualification
                     bestTimeToDrive = timeToDrive;
                     bestScoreDensity = scoreDensity;
                 }
-
-                /*
-                else if (timeToDrive < bestTimeToDrive)
-                {
-                    bestRide = ride;
-                    bestStartTime = startTime;
-                    bestTimeToDrive = timeToDrive;
-                    bestScoreDensity = scoreDensity;
-                }
-                */
-            /*else if (startTime < bestStartTime)
-            {
-                bestRide = ride;
-                bestStartTime = startTime;
-                bestTimeToDrive = timeToDrive;
-                bestScoreDensity = scoreDensity;
-            }*/
         }
     }
     }
