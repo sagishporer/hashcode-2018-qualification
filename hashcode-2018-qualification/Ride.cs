@@ -49,8 +49,8 @@ namespace hashcode_2018_qualification
                     continue;
 
                 int distance = Utils.CalculateDistance(this.EndR, this.EndC, other.StartR, other.StartC);
-                //if (this.TimeStart + this.Distance + distance > other.TimeLatestStart)
-                //    continue;
+                if (this.TimeStart + this.Distance + distance > other.TimeLatestStart)
+                    continue;
 
                 closest = Math.Min(closest, distance);
             }
