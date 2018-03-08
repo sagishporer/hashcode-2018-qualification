@@ -267,6 +267,95 @@ namespace hashcode_2018_qualification
         }
     }
 
+    class SolverByCarOneRideAtATime : Solver
+    {
+        public override void Solve()
+        {
+            foreach (Ride ride in Rides)
+                ride.CalculateClosestRide(Rides);
+
+            while (true)
+            {
+                bool rideAdded = false;
+
+                foreach (Vehicle car in Vehicles)
+                {
+                    Ride bestRide = null;
+                    int bestCompleteTime = 0;
+
+                    FindBestRideForCar(car, out bestRide, out bestCompleteTime);
+                    if (bestRide == null)
+                        continue;
+
+                    rideAdded = true;
+                    car.AddRide(bestRide, bestCompleteTime);
+                    Rides.Remove(bestRide);
+                }
+
+                if (rideAdded == false)
+                    break;
+	        }
+
+            while (true)
+            {
+                if (TryCarsReallocate(true))
+                    continue;
+
+                if (TryCarsReallocate(false))
+                    continue;
+
+                if (TryCarsPushRide())
+                    continue;
+
+                break;
+            }
+        }
+
+        private void FindBestRideForCar(Vehicle car, out Ride bestRide, out int bestCompleteTime)
+        {
+            bestRide = null;
+            bestCompleteTime = 0;
+            int bestStartTime = 0;
+            int bestDeltaStartTime = 0;
+            int bestTimeToDrive = 0;
+
+            foreach (Ride ride in Rides)
+            {
+                int timeToDrive = car.TimeToPosition(ride.StartR, ride.StartC);
+                int carToStart = car.TimeDriveEnd + timeToDrive;
+                if (carToStart > ride.TimeEnd)
+                    continue;
+                int startTime = Math.Max(carToStart, ride.TimeStart);
+                int completeTime = startTime + ride.Distance;
+                if (completeTime > ride.TimeEnd)
+                    continue;
+
+                int bonus = (startTime == ride.TimeStart) ? this.Bonus : 0;
+
+                int deltaStartTime = startTime - car.TimeDriveEnd;
+                if ((double)completeTime <= 0.98 * this.Steps)
+                    deltaStartTime += (int)((double)ride.ClosestRideDistance / 15.0);
+
+                if (bestRide == null)
+                {
+                    bestCompleteTime = completeTime;
+                    bestDeltaStartTime = deltaStartTime;
+                    bestRide = ride;
+                    bestStartTime = startTime;
+                    bestTimeToDrive = timeToDrive;
+                }
+                else if (deltaStartTime < bestDeltaStartTime)
+                {
+                    bestCompleteTime = completeTime;
+                    bestDeltaStartTime = deltaStartTime;
+                    bestRide = ride;
+                    bestStartTime = startTime;
+                    bestTimeToDrive = timeToDrive;
+                }
+            }
+        }
+    }
+
     class SolverByCarTime : Solver
     {
         public override void Solve()
@@ -383,15 +472,15 @@ namespace hashcode_2018_qualification
                     bestScoreDensity = scoreDensity;
                 }
                 */
-                /*else if (startTime < bestStartTime)
-                {
-                    bestRide = ride;
-                    bestStartTime = startTime;
-                    bestTimeToDrive = timeToDrive;
-                    bestScoreDensity = scoreDensity;
-                }*/
-            }
+            /*else if (startTime < bestStartTime)
+            {
+                bestRide = ride;
+                bestStartTime = startTime;
+                bestTimeToDrive = timeToDrive;
+                bestScoreDensity = scoreDensity;
+            }*/
         }
+    }
     }
 
     class SolverByRideTime : Solver
