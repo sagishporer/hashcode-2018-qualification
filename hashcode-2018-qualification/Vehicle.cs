@@ -29,6 +29,11 @@ namespace hashcode_2018_qualification
             ClosestRideDistance = 0;
         }
 
+        public int GetScore(int bonusValue)
+        {
+            return DriveDistance + BonusCollected * bonusValue;
+        }
+
         public void CalculateClosestRide(List<Ride> rides)
         {
             int closest = int.MaxValue;
