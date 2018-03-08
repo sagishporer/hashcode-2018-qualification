@@ -295,7 +295,7 @@ namespace hashcode_2018_qualification
                 if (rideAdded == false)
                     break;
 	        }
-
+            
             while (true)
             {
                 if (TryCarsReallocate(true))
@@ -348,7 +348,13 @@ namespace hashcode_2018_qualification
                     bestStartTime = startTime;
                     bestTimeToDrive = timeToDrive;
                 }
-
+                else if ((startTime == bestStartTime) && (timeToDrive < bestTimeToDrive))
+                {
+                    bestCompleteTime = completeTime;
+                    bestRide = ride;
+                    bestStartTime = startTime;
+                    bestTimeToDrive = timeToDrive;
+                }
             }
         }
     }
