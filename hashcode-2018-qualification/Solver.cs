@@ -465,8 +465,8 @@ namespace hashcode_2018_qualification
                     bestTimeToDrive = timeToDrive;
                     bestScoreDensity = scoreDensity;
                 }
+            }
         }
-    }
     }
 
     class SolverByRideTime : Solver
