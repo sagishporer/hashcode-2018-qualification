@@ -310,7 +310,7 @@ namespace hashcode_2018_qualification
                 break;
             }
         }
-
+        
         private void FindBestRideForCar(Vehicle car, out Ride bestRide, out int bestCompleteTime)
         {
             bestRide = null;
@@ -332,7 +332,7 @@ namespace hashcode_2018_qualification
                 int bonus = (startTime == ride.TimeStart) ? this.Bonus : 0;
 
                 if ((double)completeTime <= 0.98 * this.Steps)
-                    startTime += (int)((double)ride.ClosestRideDistance / 13.0);
+                    startTime += (int)((double)ride.ClosestRideDistance / 16.0);
 
                 if (bestRide == null)
                 {
