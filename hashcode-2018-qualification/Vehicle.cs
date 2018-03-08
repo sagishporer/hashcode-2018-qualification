@@ -14,6 +14,8 @@ namespace hashcode_2018_qualification
         public int DriveDistance;
         public int BonusCollected;
 
+        public int ClosestRideDistance;
+
         public Vehicle(int id)
         {
             this.ID = id;
@@ -23,7 +25,30 @@ namespace hashcode_2018_qualification
             TimeDriveEnd = 0;
             DriveDistance = 0;
             BonusCollected = 0;
+
+            ClosestRideDistance = 0;
         }
+
+        public void CalculateClosestRide(List<Ride> rides)
+        {
+            int closest = int.MaxValue;
+
+            for (int i = 0; i < rides.Count; i++)
+            {
+                Ride other = rides[i];
+                if (this.ID == other.ID)
+                    continue;
+
+                int distance = this.TimeToPosition(other.StartR, other.StartC);
+                if (this.TimeDriveEnd + distance > other.TimeLatestStart)
+                    continue;
+
+                closest = Math.Min(closest, distance);
+            }
+
+            ClosestRideDistance = closest;
+        }
+
 
         public int TimeToPosition(int r, int c)
         {
@@ -40,6 +65,14 @@ namespace hashcode_2018_qualification
             this.PosR = ride.EndR;
             this.PosC = ride.EndC;
             this.TimeDriveEnd = timeDriveEnd;
+        }
+
+        public class CompareByClosestRideDistance : Comparer<Vehicle>
+        {
+            public override int Compare(Vehicle x, Vehicle y)
+            {
+                return x.ClosestRideDistance.CompareTo(y.ClosestRideDistance);
+            }
         }
 
         public class CompareByTimeDriveEnd : Comparer<Vehicle>
