@@ -316,7 +316,6 @@ namespace hashcode_2018_qualification
             bestRide = null;
             bestCompleteTime = 0;
             int bestStartTime = 0;
-            int bestDeltaStartTime = 0;
             int bestTimeToDrive = 0;
 
             foreach (Ride ride in Rides)
@@ -332,26 +331,24 @@ namespace hashcode_2018_qualification
 
                 int bonus = (startTime == ride.TimeStart) ? this.Bonus : 0;
 
-                int deltaStartTime = startTime - car.TimeDriveEnd;
                 if ((double)completeTime <= 0.98 * this.Steps)
-                    deltaStartTime += (int)((double)ride.ClosestRideDistance / 13.0);
+                    startTime += (int)((double)ride.ClosestRideDistance / 13.0);
 
                 if (bestRide == null)
                 {
                     bestCompleteTime = completeTime;
-                    bestDeltaStartTime = deltaStartTime;
                     bestRide = ride;
                     bestStartTime = startTime;
                     bestTimeToDrive = timeToDrive;
                 }
-                else if (deltaStartTime < bestDeltaStartTime)
+                else if (startTime < bestStartTime)
                 {
                     bestCompleteTime = completeTime;
-                    bestDeltaStartTime = deltaStartTime;
                     bestRide = ride;
                     bestStartTime = startTime;
                     bestTimeToDrive = timeToDrive;
                 }
+
             }
         }
     }
