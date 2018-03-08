@@ -334,7 +334,7 @@ namespace hashcode_2018_qualification
 
                 int deltaStartTime = startTime - car.TimeDriveEnd;
                 if ((double)completeTime <= 0.98 * this.Steps)
-                    deltaStartTime += (int)((double)ride.ClosestRideDistance / 15.0);
+                    deltaStartTime += (int)((double)ride.ClosestRideDistance / 13.0);
 
                 if (bestRide == null)
                 {
