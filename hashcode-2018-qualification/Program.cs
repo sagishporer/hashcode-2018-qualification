@@ -9,7 +9,7 @@ namespace hashcode_2018_qualification
             int totalScore = 0;
 
             Solver solver = new SolverByCarOneRideAtATime();
-            Solver solver2 = new SolverByCar(false);
+            Solver solver2 = new SolverByCar();
 
             totalScore += ProcessInputFile(solver, @"c:\temp\a.in");
             totalScore += ProcessInputFile(solver, @"c:\temp\b.in");

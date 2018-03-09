@@ -122,17 +122,17 @@ namespace hashcode_2018_qualification
 
         public abstract void Solve();
 
-        protected bool TryCarsX2Reallocate(bool useClosestRide, int numberOfCars)
+        protected bool TryCarsX2Reallocate(AllocateRidesToCarDelegate allocateRidesToCarDelegate, int numberOfCars)
         {
             int[] instances = new int[numberOfCars];
 
-            return TryCarsX2Reallocate_Recurse(useClosestRide, instances, 0);
+            return TryCarsX2Reallocate_Recurse(allocateRidesToCarDelegate, instances, 0);
         }
 
-        private bool TryCarsX2Reallocate_Recurse(bool useClosestRide, int[] instances, int nextPos)
+        private bool TryCarsX2Reallocate_Recurse(AllocateRidesToCarDelegate allocateRidesToCarDelegate, int[] instances, int nextPos)
         {
             if (nextPos == instances.Length)
-                return TryCarsX2Reallocate_Perform(useClosestRide, instances);
+                return TryCarsX2Reallocate_Perform(allocateRidesToCarDelegate, instances);
 
             bool improved = false;
             int minCar = 0;
@@ -142,14 +142,14 @@ namespace hashcode_2018_qualification
             for (int i = minCar; i < Vehicles.Count; i++)
             {
                 instances[nextPos] = i;
-                bool newImproved = TryCarsX2Reallocate_Recurse(useClosestRide, instances, nextPos + 1);
+                bool newImproved = TryCarsX2Reallocate_Recurse(allocateRidesToCarDelegate, instances, nextPos + 1);
                 improved = improved || newImproved;
             }
 
             return improved;
         }
 
-        private bool TryCarsX2Reallocate_Perform(bool useClosestRide, int[] instances)
+        private bool TryCarsX2Reallocate_Perform(AllocateRidesToCarDelegate allocateRidesToCarDelegate, int[] instances)
         {
             bool improved = false;
 
@@ -166,7 +166,7 @@ namespace hashcode_2018_qualification
             }
 
             foreach (Vehicle newCar in newCars)
-                AllocateRidesToCar_StartEarliest(useClosestRide, newCar, freeRides, this.Bonus);
+                AllocateRidesToCar_StartEarliest(allocateRidesToCarDelegate, newCar, freeRides, this.Bonus);
 
             int oldScore = 0;
             foreach (Vehicle car in cars)
@@ -188,7 +188,7 @@ namespace hashcode_2018_qualification
             return improved;
         }
 
-        protected bool TryCarsReallocate(bool useClosestRide)
+        protected bool TryCarsReallocate(AllocateRidesToCarDelegate allocateRidesToCarDelegate)
         {
             for (int i = 0; i < Vehicles.Count; i++)
             {
@@ -197,7 +197,7 @@ namespace hashcode_2018_qualification
                 freeRides.AddRange(car.RidesAssigned);
 
                 Vehicle newCar = new Vehicle(car.ID);
-                AllocateRidesToCar_StartEarliest(useClosestRide, newCar, freeRides, this.Bonus);
+                AllocateRidesToCar_StartEarliest(allocateRidesToCarDelegate, newCar, freeRides, this.Bonus);
                 if (newCar.DriveDistance + newCar.BonusCollected * this.Bonus > car.DriveDistance + car.BonusCollected * this.Bonus)
                 {
                     Rides = freeRides;
@@ -210,14 +210,14 @@ namespace hashcode_2018_qualification
             return false;
         }
 
-        protected void AllocateRidesToCar_StartEarliest(bool useClosestRide, Vehicle newCar, List<Ride> freeRides, int bonusValue)
+        protected void AllocateRidesToCar_StartEarliest(AllocateRidesToCarDelegate allocateRidesToCarDelegate, Vehicle newCar, List<Ride> freeRides, int bonusValue)
         {
             while (true)
             {
                 Ride bestRide;
                 int bestCompleteTime;
 
-                AllocateRidesToCar_FindEarlyStartRide(useClosestRide, newCar, freeRides, bonusValue, out bestRide, out bestCompleteTime);
+                allocateRidesToCarDelegate(newCar, freeRides, bonusValue, out bestRide, out bestCompleteTime);
 
                 if (bestRide != null)
                 {
@@ -235,7 +235,9 @@ namespace hashcode_2018_qualification
             }
         }
 
-        private void AllocateRidesToCar_FindEarlyStartRide(bool useClosestRide, Vehicle car, List<Ride> rides, int bonusValue, out Ride bestRide, out int bestCompleteTime)
+        public delegate void AllocateRidesToCarDelegate(Vehicle car, List<Ride> rides, int bonusValue, out Ride bestRide, out int bestCompleteTime);
+
+        protected void AllocateRidesToCar_FindEarlyStartClosest(Vehicle car, List<Ride> rides, int bonusValue, out Ride bestRide, out int bestCompleteTime)
         {
             bestRide = null;
             bestCompleteTime = 0;
@@ -252,9 +254,40 @@ namespace hashcode_2018_qualification
                 if (completeTime >= ride.TimeEnd)
                     continue;
 
-                if (useClosestRide == true)
-                    if ((double)completeTime <= 0.98 * this.Steps)
-                        startTime += (double)ride.ClosestRideDistance * 0.98;
+                if ((double)completeTime <= 0.98 * this.Steps)
+                    startTime += (double)ride.ClosestRideDistance * 0.98;
+
+                if (bestRide == null)
+                {
+                    bestCompleteTime = completeTime;
+                    bestRide = ride;
+                    bestStartTime = startTime;
+                }
+                else if (startTime < bestStartTime)
+                {
+                    bestCompleteTime = completeTime;
+                    bestRide = ride;
+                    bestStartTime = startTime;
+                }
+            }
+        }
+
+        protected void AllocateRidesToCar_FindEarlyStartSimple(Vehicle car, List<Ride> rides, int bonusValue, out Ride bestRide, out int bestCompleteTime)
+        {
+            bestRide = null;
+            bestCompleteTime = 0;
+            double bestStartTime = 0;
+
+            foreach (Ride ride in rides)
+            {
+                int timeToDrive = car.TimeToPosition(ride.StartR, ride.StartC);
+                int carToStart = car.TimeDriveEnd + timeToDrive;
+                if (carToStart >= ride.TimeEnd)
+                    continue;
+                double startTime = Math.Max(carToStart, ride.TimeStart);
+                int completeTime = (int)startTime + ride.Distance;
+                if (completeTime >= ride.TimeEnd)
+                    continue;
 
                 if (bestRide == null)
                 {
@@ -356,19 +389,19 @@ namespace hashcode_2018_qualification
             // Optimization phase
             while (true)
             {
-                if (TryCarsX2Reallocate(false, 1))
+                if (TryCarsX2Reallocate(AllocateRidesToCar_FindEarlyStartSimple, 1))
                     continue;
 
-                if (TryCarsX2Reallocate(true, 1))
+                if (TryCarsX2Reallocate(AllocateRidesToCar_FindEarlyStartClosest, 1))
                     continue;
 
                 if (TryCarsPushRide())
                     continue;
 
-                if (TryCarsX2Reallocate(false, 2))
+                if (TryCarsX2Reallocate(AllocateRidesToCar_FindEarlyStartSimple, 2))
                     continue;
 
-                if (TryCarsX2Reallocate(true, 2))
+                if (TryCarsX2Reallocate(AllocateRidesToCar_FindEarlyStartClosest, 2))
                     continue;
 
                 break;
@@ -693,11 +726,8 @@ namespace hashcode_2018_qualification
 
     class SolverByCar : Solver
     {
-        private bool UseClosestRide { get; set; }
-
-        public SolverByCar(bool useClosestRide)
+        public SolverByCar()
         {
-            this.UseClosestRide = useClosestRide;
         }
 
         public override void Solve()
@@ -708,25 +738,19 @@ namespace hashcode_2018_qualification
             for (int carPos = 0; carPos < Vehicles.Count; carPos++)
             {
                 Vehicle car = Vehicles[carPos];
-                AllocateRidesToCar_StartEarliest(this.UseClosestRide, car, Rides, this.Bonus);
+                AllocateRidesToCar_StartEarliest(AllocateRidesToCar_FindEarlyStartSimple, car, Rides, this.Bonus);
             }
 
             while (true)
             {
-                if (TryCarsReallocate(this.UseClosestRide))
+                if (TryCarsReallocate(AllocateRidesToCar_FindEarlyStartSimple))
                     continue;
 
-                if (TryCarsReallocate(!this.UseClosestRide))
+                if (TryCarsReallocate(AllocateRidesToCar_FindEarlyStartClosest))
                     continue;
 
                 if (TryCarsPushRide())
                     continue;
-
-                //if (TryCarsX2Reallocate(true, 3))
-                //    continue;
-
-                //if (TryCarsX2Reallocate(false, 3))
-                //    continue;
 
                 break;
             }
