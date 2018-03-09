@@ -304,6 +304,41 @@ namespace hashcode_2018_qualification
             }
         }
 
+        protected void AllocateRidesToCar_FindEarlyStartClosestV2(Vehicle car, List<Ride> rides, int bonusValue, out Ride bestRide, out int bestCompleteTime)
+        {
+            bestRide = null;
+            bestCompleteTime = 0;
+            double bestStartTime = 0;
+
+            foreach (Ride ride in rides)
+            {
+                int timeToDrive = car.TimeToPosition(ride.StartR, ride.StartC);
+                int carToStart = car.TimeDriveEnd + timeToDrive;
+                if (carToStart > ride.TimeEnd)
+                    continue;
+                double startTime = Math.Max(carToStart, ride.TimeStart);
+                int completeTime = (int)startTime + ride.Distance;
+                if (completeTime > ride.TimeEnd)
+                    continue;
+
+                if ((double)completeTime <= 0.98 * this.Steps)
+                    startTime += (int)((double)ride.ClosestRideDistance / 16.0);
+
+                if (bestRide == null)
+                {
+                    bestCompleteTime = completeTime;
+                    bestRide = ride;
+                    bestStartTime = startTime;
+                }
+                else if (startTime < bestStartTime)
+                {
+                    bestCompleteTime = completeTime;
+                    bestRide = ride;
+                    bestStartTime = startTime;
+                }
+            }
+        }
+
         protected bool TryCarsPushRide()
         {
             for (int i = 0; i < Vehicles.Count; i++)
@@ -395,6 +430,9 @@ namespace hashcode_2018_qualification
                 if (TryCarsX2Reallocate(AllocateRidesToCar_FindEarlyStartClosest, 1))
                     continue;
 
+                if (TryCarsX2Reallocate(AllocateRidesToCar_FindEarlyStartClosestV2, 1))
+                    continue;
+
                 if (TryCarsPushRide())
                     continue;
 
@@ -403,7 +441,7 @@ namespace hashcode_2018_qualification
 
                 if (TryCarsX2Reallocate(AllocateRidesToCar_FindEarlyStartClosest, 2))
                     continue;
-
+                
                 break;
             }
         }
