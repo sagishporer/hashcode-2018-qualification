@@ -8,14 +8,15 @@ namespace hashcode_2018_qualification
         {
             int totalScore = 0;
 
-            Solver solver = new SolverByCarOneRideAtATime();
+            Solver solver = new SolverByCarOneRideAtATime(false);
             Solver solver2 = new SolverByCar();
+            Solver solver3 = new SolverByCarOneRideAtATime(true);
 
             totalScore += ProcessInputFile(solver, @"c:\temp\a.in");
             totalScore += ProcessInputFile(solver, @"c:\temp\b.in");
             totalScore += ProcessInputFile(solver2, @"c:\temp\c.in");
             totalScore += ProcessInputFile(solver, @"c:\temp\d.in");
-            totalScore += ProcessInputFile(solver, @"c:\temp\e.in");
+            totalScore += ProcessInputFile(solver3, @"c:\temp\e.in");
 
             System.Console.WriteLine("Total Score: {0}", totalScore);
         }

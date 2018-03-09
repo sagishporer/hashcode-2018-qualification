@@ -394,6 +394,13 @@ namespace hashcode_2018_qualification
 
     class SolverByCarOneRideAtATime : Solver
     {
+        private bool UseBonusMethod;
+
+        public SolverByCarOneRideAtATime(bool useBonusMethod)
+        {
+            this.UseBonusMethod = useBonusMethod;
+        }
+
         public override void Solve()
         {
             foreach (Ride ride in Rides)
@@ -408,7 +415,11 @@ namespace hashcode_2018_qualification
                     Ride bestRide = null;
                     int bestCompleteTime = 0;
 
-                    FindBestRideForCar(car, out bestRide, out bestCompleteTime);
+                    if (UseBonusMethod == false)
+                        FindBestRideForCar(car, out bestRide, out bestCompleteTime);
+                    else
+                        FindBestRideForCarBonus(car, out bestRide, out bestCompleteTime);
+
                     if (bestRide == null)
                         continue;
 
@@ -432,10 +443,10 @@ namespace hashcode_2018_qualification
 
                 if (TryCarsX2Reallocate(AllocateRidesToCar_FindEarlyStartClosestV2, 1))
                     continue;
-
+                
                 if (TryCarsPushRide())
                     continue;
-
+                
                 if (TryCarsX2Reallocate(AllocateRidesToCar_FindEarlyStartSimple, 2))
                     continue;
 
@@ -492,6 +503,50 @@ namespace hashcode_2018_qualification
                     bestRide = ride;
                     bestStartTime = startTime;
                     bestTimeToDrive = timeToDrive;
+                }
+            }
+        }
+
+        private void FindBestRideForCarBonus(Vehicle car, out Ride bestRide, out int bestCompleteTime)
+        {
+            bestRide = null;
+            bestCompleteTime = 0;
+            int bestStartTime = 0;
+            int bestTimeToDrive = 0;
+            int bestHasBonus = 0;
+
+            foreach (Ride ride in Rides)
+            {
+                int timeToDrive = car.TimeToPosition(ride.StartR, ride.StartC);
+                int carToStart = car.TimeDriveEnd + timeToDrive;
+                if (carToStart > ride.TimeEnd)
+                    continue;
+                int startTime = Math.Max(carToStart, ride.TimeStart);
+                int completeTime = startTime + ride.Distance;
+                if (completeTime > ride.TimeEnd)
+                    continue;
+
+                int bonus = (startTime == ride.TimeStart) ? this.Bonus : 0;
+
+                if ((double)completeTime <= 0.98 * this.Steps)
+                    startTime += (int)((double)ride.ClosestRideDistance / 16.0);
+
+                int hasBonus = (carToStart <= ride.TimeStart) ? Bonus : 0;
+                if (bestRide == null)
+                {
+                    bestCompleteTime = completeTime;
+                    bestRide = ride;
+                    bestStartTime = startTime;
+                    bestTimeToDrive = timeToDrive;
+                    bestHasBonus = hasBonus;
+                }
+                else if (startTime - hasBonus < bestStartTime - bestHasBonus)
+                {
+                    bestCompleteTime = completeTime;
+                    bestRide = ride;
+                    bestStartTime = startTime;
+                    bestTimeToDrive = timeToDrive;
+                    bestHasBonus = hasBonus;
                 }
             }
         }
