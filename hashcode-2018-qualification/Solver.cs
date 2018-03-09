@@ -122,45 +122,67 @@ namespace hashcode_2018_qualification
 
         public abstract void Solve();
 
-        protected bool TryCarsX2Reallocate(bool useClosestRide)
+        protected bool TryCarsX2Reallocate(bool useClosestRide, int numberOfCars)
+        {
+            int[] instances = new int[numberOfCars];
+
+            return TryCarsX2Reallocate_Recurse(useClosestRide, instances, 0);
+        }
+
+        private bool TryCarsX2Reallocate_Recurse(bool useClosestRide, int[] instances, int nextPos)
+        {
+            if (nextPos == instances.Length)
+                return TryCarsX2Reallocate_Perform(useClosestRide, instances);
+
+            bool improved = false;
+            int minCar = 0;
+            if (nextPos > 0)
+                minCar = instances[nextPos - 1] + 1;
+
+            for (int i = minCar; i < Vehicles.Count; i++)
+            {
+                instances[nextPos] = i;
+                bool newImproved = TryCarsX2Reallocate_Recurse(useClosestRide, instances, nextPos + 1);
+                improved = improved || newImproved;
+            }
+
+            return improved;
+        }
+
+        private bool TryCarsX2Reallocate_Perform(bool useClosestRide, int[] instances)
         {
             bool improved = false;
-            for (int i = 0; i < Vehicles.Count; i++)
-            { 
-                for (int j = i + 1; j < Vehicles.Count; j++)
-                {
-                    List<Vehicle> cars = new List<Vehicle>();
-                    cars.Add(Vehicles[i]);
-                    cars.Add(Vehicles[j]);
 
-                    List<Ride> freeRides = new List<Ride>(Rides);
-                    foreach (Vehicle car in cars)
-                        freeRides.AddRange(car.RidesAssigned);
+            List<Vehicle> cars = new List<Vehicle>();
+            for (int i = 0; i < instances.Length; i++)
+                cars.Add(Vehicles[instances[i]]);
 
-                    List<Vehicle> newCars = new List<Vehicle>();
-                    foreach (Vehicle car in cars)
-                        newCars.Add(new Vehicle(car.ID));
+            List<Ride> freeRides = new List<Ride>(Rides);
+            List<Vehicle> newCars = new List<Vehicle>();
+            foreach (Vehicle car in cars)
+            {
+                freeRides.AddRange(car.RidesAssigned);
+                newCars.Add(new Vehicle(car.ID));
+            }
 
-                    foreach (Vehicle newCar in newCars)
-                        AllocateRidesToCar_StartEarliest(useClosestRide, newCar, freeRides, this.Bonus);
+            foreach (Vehicle newCar in newCars)
+                AllocateRidesToCar_StartEarliest(useClosestRide, newCar, freeRides, this.Bonus);
 
-                    int oldScore = 0;
-                    foreach (Vehicle car in cars)
-                        oldScore += car.GetScore(this.Bonus);
+            int oldScore = 0;
+            foreach (Vehicle car in cars)
+                oldScore += car.GetScore(this.Bonus);
 
-                    int newScore = 0;
-                    foreach (Vehicle newCar in newCars)
-                        newScore += newCar.GetScore(this.Bonus);
+            int newScore = 0;
+            foreach (Vehicle newCar in newCars)
+                newScore += newCar.GetScore(this.Bonus);
 
-                    if (newScore > oldScore)
-                    {
-                        Rides = freeRides;
-                        Vehicles[i] = newCars[0];
-                        Vehicles[j] = newCars[1];
+            if (newScore > oldScore)
+            {
+                Rides = freeRides;
+                for (int i = 0; i < instances.Length; i++)
+                    Vehicles[instances[i]] = newCars[i];
 
-                        improved = true;
-                    }
-                }
+                improved = true;
             }
 
             return improved;
@@ -334,19 +356,19 @@ namespace hashcode_2018_qualification
             // Optimization phase
             while (true)
             {
-                if (TryCarsReallocate(true))
+                if (TryCarsX2Reallocate(false, 1))
                     continue;
 
-                if (TryCarsReallocate(false))
+                if (TryCarsX2Reallocate(true, 1))
                     continue;
 
                 if (TryCarsPushRide())
                     continue;
 
-                if (TryCarsX2Reallocate(true))
+                if (TryCarsX2Reallocate(false, 2))
                     continue;
 
-                if (TryCarsX2Reallocate(false))
+                if (TryCarsX2Reallocate(true, 2))
                     continue;
 
                 break;
@@ -700,11 +722,11 @@ namespace hashcode_2018_qualification
                 if (TryCarsPushRide())
                     continue;
 
-                if (TryCarsX2Reallocate(true))
-                    continue;
+                //if (TryCarsX2Reallocate(true, 3))
+                //    continue;
 
-                if (TryCarsX2Reallocate(false))
-                    continue;
+                //if (TryCarsX2Reallocate(false, 3))
+                //    continue;
 
                 break;
             }
