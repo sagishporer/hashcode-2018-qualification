@@ -441,7 +441,10 @@ namespace hashcode_2018_qualification
 
                 if (TryCarsX2Reallocate(AllocateRidesToCar_FindEarlyStartClosest, 2))
                     continue;
-                
+
+                if (TryCarsX2Reallocate(AllocateRidesToCar_FindEarlyStartClosestV2, 2))
+                    continue;
+
                 break;
             }
         }
