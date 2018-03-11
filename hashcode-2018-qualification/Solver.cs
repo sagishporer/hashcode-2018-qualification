@@ -451,8 +451,8 @@ namespace hashcode_2018_qualification
                 if (TryCarsPushRide())
                     continue;
 
-                int score = this.CalculateScore();
-                this.WriteOutput(InputFileName + "." + score + ".out.txt");
+                //int score = this.CalculateScore();
+                //this.WriteOutput(InputFileName + "." + score + ".out.txt");
 
                 if (TryCarsX2Reallocate(AllocateRidesToCar_FindEarlyStartSimple, 2))
                     continue;
