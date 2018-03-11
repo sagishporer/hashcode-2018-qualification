@@ -29,6 +29,8 @@ namespace hashcode_2018_qualification
 
     abstract class Solver
     {
+        public string InputFileName;
+
         private int Rows;
         private int Columns;
 
@@ -40,6 +42,8 @@ namespace hashcode_2018_qualification
 
         public void Load(string fileName)
         {
+            InputFileName = fileName;
+
             using (System.IO.StreamReader sr = new System.IO.StreamReader(fileName))
             {
                 string line = sr.ReadLine();
@@ -446,7 +450,10 @@ namespace hashcode_2018_qualification
                 
                 if (TryCarsPushRide())
                     continue;
-                
+
+                int score = this.CalculateScore();
+                this.WriteOutput(InputFileName + "." + score + ".out.txt");
+
                 if (TryCarsX2Reallocate(AllocateRidesToCar_FindEarlyStartSimple, 2))
                     continue;
 
@@ -454,6 +461,15 @@ namespace hashcode_2018_qualification
                     continue;
 
                 if (TryCarsX2Reallocate(AllocateRidesToCar_FindEarlyStartClosestV2, 2))
+                    continue;
+
+                if (TryCarsX2Reallocate(AllocateRidesToCar_FindEarlyStartSimple, 3))
+                    continue;
+
+                if (TryCarsX2Reallocate(AllocateRidesToCar_FindEarlyStartClosest, 3))
+                    continue;
+
+                if (TryCarsX2Reallocate(AllocateRidesToCar_FindEarlyStartClosestV2, 3))
                     continue;
 
                 break;
