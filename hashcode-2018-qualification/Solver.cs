@@ -462,7 +462,7 @@ namespace hashcode_2018_qualification
 
                 if (TryCarsX2Reallocate(AllocateRidesToCar_FindEarlyStartClosestV2, 2))
                     continue;
-
+                /*
                 if (TryCarsX2Reallocate(AllocateRidesToCar_FindEarlyStartSimple, 3))
                     continue;
 
@@ -471,7 +471,7 @@ namespace hashcode_2018_qualification
 
                 if (TryCarsX2Reallocate(AllocateRidesToCar_FindEarlyStartClosestV2, 3))
                     continue;
-
+                */
                 break;
             }
         }
